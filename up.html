@@ -13,6 +13,7 @@
   <body>
     <button id="sat-view-btn" onclick="changeView()" value="Satelite View!">Change View</button>
     <button id="rewind" onclick="console.log('rew')">Rewind</button>
+
     <div id="wwd-div">
       <canvas id="wwd-canvas">
           Your browser does not support HTML5 Canvas.
@@ -24,7 +25,7 @@
       window.addEventListener("load", eventWindowLoaded, false);
 
       // The sattelite id that this page has centered
-      var currentSat;
+      var currentSatID;
       // boolean to indicate wheter I'm on sat view or third person View. Default is third person
       var satView = false;
 
@@ -44,20 +45,36 @@
       var currAlt=[]     //altitude
       var currName;      // sat name
 
+      // store the coordinates of the neighboring satelites in multidimensional arrrays
+      var neighborLat = [];
+      var neighborLong = [];
+      var neighborAlt = [];
+      // store the names in an 1-d array
+      var neighborName = [];
+      // store the id's of the neighbors to make api calls
+      var neighborID = [];
+
 
       function eventWindowLoaded() {
         // decode the ID from the URL.
         var url = document.location.href,
             params = url.split('?')[1].split('&'),
-            data = {}, tmp;
+            data = [], tmp;
             for (var i = 0, l = params.length; i < l; i++) {
                tmp = params[i].split('=');
                data[tmp[0]] = tmp[1];
              }
             currentSat = data.id;
+            var neighborCount = data.num;   //number of neighbors to plot
+            // fill the neighborID array
+            for (var i=0; i<neighborCount; i++) {
+              var x = "id" + i;
+              neighborID[i] = data[x];
+              console.log(neighborID[i]);
+            }
 
         // make a request for current sat
-        var request = {
+    /*    var request = {
              "async": false,
              "crossDomain": true,
              "url": "https://www.n2yo.com/rest/v1/satellite/positions/" + currentSat + "/37.10/22.10/0/300/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
@@ -73,92 +90,122 @@
               currAlt[i] = response.positions[i].sataltitude * 1000; //convert km to m
             }
             currName = response.info.satname;
-        });
+        }); */
+
+        $.ajax({
+              data: {cmd:"positions",
+              id:currentSatID,
+              obs_lat:"37",
+              obs_lng:"22",
+              obs_alt:"0",
+              sec:"300"},
+            url: '../handle_api_requests.php',
+            method: 'POST', // or GET
+            async: false,
+            success: function(msg) {
+                var response = JSON.parse(msg);
+                console.log(response.info.satname);
+                // fill the arrrays with a chunk of 300 future positions
+                for (var i = 0; i < 300; i++) {
+                  currLat[i] = response.positions[i].satlatitude;
+                  currLong[i] = response.positions[i].satlongitude;
+                  currAlt[i] = response.positions[i].sataltitude * 1000; //convert km to m
+                }
+                currName = response.info.satname;
+              }
+          });
+
+        // make a loop to request for coordinates for all neighbors
+        for (var neighbor=0; neighbor<neighborCount; neighbor++) {
+          // make a request for current neighbor
+          /*var request = {
+               "async": false,
+               "crossDomain": true,
+               "url": "https://www.n2yo.com/rest/v1/satellite/positions/" + neighborID[neighbor] + "/37.10/22.10/0/300/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
+               "method": "GET"
+            }
+
+            $.ajax(request).done(function (response) {
+                console.log(response.info.satname);
+                // instantiate the arrays for this neighbor
+                neighborLat[neighbor] = [];
+                neighborLong[neighbor] = [];
+                neighborAlt[neighbor] = [];
+                // fill the arrrays with a chunk of 300 future positions
+                for (var i = 0; i < 300; i++) {
+                  neighborLat[neighbor][i] = response.positions[i].satlatitude;
+                  neighborLong[neighbor][i] = response.positions[i].satlongitude;
+                  neighborAlt[neighbor][i] = response.positions[i].sataltitude * 1000; //convert km to m
+                }
+                neighborName[neighbor] = response.info.satname;
+            });*/
+
+            $.ajax({
+                  data: {cmd:"positions",
+                      id:neighborID[neighbor],
+                      obs_lat:"37",
+                      obs_lng:"22",
+                      obs_alt:"2",
+                      sec:"1"},
+                  url: '../handle_api_requests.php',
+                  method: 'POST', // or GET
+                  async: false,
+                  success: function(msg) {
+                      var response = JSON.parse(msg);
+                      console.log(response.info.satname);
+                      // instantiate the arrays for this neighbor
+                      neighborLat[neighbor] = [];
+                      neighborLong[neighbor] = [];
+                      neighborAlt[neighbor] = [];
+                      // fill the arrrays with a chunk of 300 future positions
+                      for (var i = 0; i < 300; i++) {
+                        neighborLat[neighbor][i] = response.positions[i].satlatitude;
+                        neighborLong[neighbor][i] = response.positions[i].satlongitude;
+                        neighborAlt[neighbor][i] = response.positions[i].sataltitude * 1000; //convert km to m
+                      }
+                      neighborName[neighbor] = response.info.satname;
+                  }
+              });
+        }
 
           // Add some image layers to the WorldWindow's globe.
           wwd.addLayer(new WorldWind.BMNGOneImageLayer());
           wwd.addLayer(new WorldWind.BMNGLandsatLayer());
-          // create placemarks. currently only the first placemark corresponds to an actual sattalite with a position that is being updated in real time.
-          // The rest are just placeholders.
+          // create a placemark layer
           var placemarkLayer = new WorldWind.RenderableLayer("Placemarks");
-          var sat1 = new WorldWind.Placemark(new WorldWind.Position(currLat[0], currLong[0] , currAlt[0]), true);
-          var sat2 = new WorldWind.Placemark(new WorldWind.Position(20, 30, 500000), true);
-          var sat3 = new WorldWind.Placemark(new WorldWind.Position(15, 67, 500000), true);
-          var sat4 = new WorldWind.Placemark(new WorldWind.Position(32, 5, 500000), true);
-          var sat5 = new WorldWind.Placemark(new WorldWind.Position(14, 70, 500000), true);
-          var sat6 = new WorldWind.Placemark(new WorldWind.Position(89, 69, 500000), true);
-          var sat7 = new WorldWind.Placemark(new WorldWind.Position(5, 69, 500000), true);
-          var sat8 = new WorldWind.Placemark(new WorldWind.Position(10, 37, 500000), true);
-          var sat9 = new WorldWind.Placemark(new WorldWind.Position(42, 17, 500000), true);
-          var sat10 = new WorldWind.Placemark(new WorldWind.Position(17, 42, 50000), true);
-          sat1.label = currName;
-          sat2.label = "ISS2";
-          sat3.label = "name3";
-          sat4.label = "name4";
-          sat5.label = "name5";
-          sat6.label = "name6";
-          sat7.label = "name7";
-          sat8.label = "name8";
-          sat9.label = "name9";
-          sat10.label = "name10";
 
-          var attributes = sat1.attributes;
+          // set the placemark for the current sat
+          var sat = new WorldWind.Placemark(new WorldWind.Position(currLat[0], currLong[0] , currAlt[0]), true);
+          sat.label = currName;
+
+          // set an array of placemarks for the neighboring sats.
+          var neighborSat = [];
+          for (var i=0; i<neighborCount; i++) {
+            neighborSat[i] = new WorldWind.Placemark(new WorldWind.Position(neighborLat[i][0], neighborLong[i][0] , neighborAlt[0]), true);
+            neighborSat[i].label = neighborName[i];
+          }
+
+          // set attributes
+          var attributes = sat.attributes;
           attributes.drawLeaderLine = true;
           attributes.labelAttributes.color = WorldWind.Color.YELLOW;
-          attributes.imageSource = "sattelite.png";
+          attributes.imageSource = "https://user-images.githubusercontent.com/71587056/94994337-a28caf80-059f-11eb-8f37-9e9b40854758.png";
           attributes.labelAttributes.offset = new WorldWind.Offset(
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, -1.0);
           attributes.imageScale = 50;
-          var font = new WorldWind.Font(50);
-          attributes.labelAttributes.font = font;
+          attributes.labelAttributes.font = new WorldWind.Font(50);
+          placemarkLayer.addRenderable(sat);
 
-          var attributes2 = sat2.attributes;
-          attributes2.drawLeaderLine = true;
-          attributes2.imageScale = 50;
+          // set attributes for neighborSat
+          for (var i=0; i<neighborCount; i++) {
+            var attributes = neighborSat[i].attributes;
+            attributes.drawLeaderLine = true;
+            attributes.imageScale = 50;
+            placemarkLayer.addRenderable(neighborSat[i]);
+          }
 
-          var attributes3 = sat3.attributes;
-          attributes3.drawLeaderLine = true;
-          attributes3.imageScale = 50;
 
-          var attributes4 = sat4.attributes;
-          attributes4.drawLeaderLine = true;
-          attributes4.imageScale = 50;
-
-          var attributes5 = sat5.attributes;
-          attributes5.drawLeaderLine = true;
-          attributes5.imageScale = 50;
-
-          var attributes6 = sat6.attributes;
-          attributes6.drawLeaderLine = true;
-          attributes6.imageScale = 50;
-
-          var attributes7 = sat7.attributes;
-          attributes7.drawLeaderLine = true;
-          attributes7.imageScale = 50;
-
-          var attributes8 = sat8.attributes;
-          attributes8.drawLeaderLine = true;
-          attributes8.imageScale = 50;
-
-          var attributes9 = sat9.attributes;
-          attributes9.drawLeaderLine = true;
-          attributes9.imageScale = 50;
-
-          var attributes10 = sat10.attributes;
-          attributes10.drawLeaderLine = true;
-          attributes10.imageScale = 50;
-
-          placemarkLayer.addRenderable(sat1);
-          placemarkLayer.addRenderable(sat2);
-          placemarkLayer.addRenderable(sat3);
-          placemarkLayer.addRenderable(sat4);
-          placemarkLayer.addRenderable(sat5);
-          placemarkLayer.addRenderable(sat6);
-          placemarkLayer.addRenderable(sat7);
-          placemarkLayer.addRenderable(sat8);
-          placemarkLayer.addRenderable(sat9);
-          placemarkLayer.addRenderable(sat10);
           wwd.addLayer(placemarkLayer);
 
           // Add a compass, a coordinates display and some view controls to the WorldWindow.
@@ -167,7 +214,7 @@
           wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
           wwd.navigator.tilt = 60;
         //  wwd.navigator.range = 5000000;
-          wwd.goTo(new WorldWind.Location(sat1.position.latitude, sat1.position.longitude));
+          wwd.goTo(new WorldWind.Location(sat.position.latitude, sat.position.longitude));
 
           // loop to update the position of the sattelites
           function myLoop() {         //  create a loop function
@@ -179,7 +226,7 @@
               else {                  // if not rewind move normally
                 // if it is the 300th iteration, transact again and fill the arrays with new positions.
                 if (iteration==300) {
-                  var newRequest = {
+                  /*var newRequest = {
                          "async": true,
                          "crossDomain": true,
                          "url": "https://www.n2yo.com/rest/v1/satellite/positions/" + currentSat + "/37.10/22.10/0/300/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
@@ -187,24 +234,89 @@
                       }
                     $.ajax(newRequest).done(function (response) {
                           console.log(response.info.satname);
-                          var i=0;
-                          for (i=0; i<300; i++) {
+                          for (var i=0; i<300; i++) {
                             currLat[i] = response.positions[i].satlatitude;
                             currLong[i] = response.positions[i].satlongitude;
                             currAlt[i] = response.positions[i].sataltitude * 1000;
                           }
-                    });
+                    });*/
+                    $.ajax({
+                          data: {cmd:"positions",
+                              id:currentSatID,
+                              obs_lat:"37",
+                              obs_lng:"22",
+                              obs_alt:"0",
+                              sec:"300"},
+                          url: '../handle_api_requests.php',
+                          method: 'POST', // or GET
+                          async: false,
+                          success: function(msg) {
+                              var response = JSON.parse(msg);
+                              console.log(response.info.satname);
+                              for (var i=0; i<300; i++) {
+                                currLat[i] = response.positions[i].satlatitude;
+                                currLong[i] = response.positions[i].satlongitude;
+                                currAlt[i] = response.positions[i].sataltitude * 1000;
+                              }
+                      });
+
+                    // make a loop to request for coordinates for all neighbors
+                    for (var neighbor=0; neighbor<neighborCount; neighbor++) {
+                      // make a request for current neighbor
+                    /*  var request = {
+                           "async": false,
+                           "crossDomain": true,
+                           "url": "https://www.n2yo.com/rest/v1/satellite/positions/" + neighborID[neighbor] + "/37.10/22.10/0/300/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
+                           "method": "GET"
+                        }
+
+                        $.ajax(request).done(function (response) {
+                            console.log(response.info.satname);
+                            // fill the arrrays with a chunk of 300 future positions
+                            for (var i = 0; i < 300; i++) {
+                              neighborLat[neighbor][i] = response.positions[i].satlatitude;
+                              neighborLong[neighbor][i] = response.positions[i].satlongitude;
+                              neighborAlt[neighbor][i] = response.positions[i].sataltitude * 1000; //convert km to m
+                            }
+                        });*/
+                        $.ajax({
+                              data: {cmd:"positions",
+                                  id:neighborID[neighbor],
+                                  obs_lat:"37",
+                                  obs_lng:"22",
+                                  obs_alt:"0",
+                                  sec:"300"},
+                              url: '../handle_api_requests.php',
+                              method: 'POST', // or GET
+                              async: false,
+                              success: function(msg) {
+                                  var response = JSON.parse(msg);
+                                  console.log(response.info.satname);
+                                  // fill the arrrays with a chunk of 300 future positions
+                                  for (var i = 0; i < 300; i++) {
+                                    neighborLat[neighbor][i] = response.positions[i].satlatitude;
+                                    neighborLong[neighbor][i] = response.positions[i].satlongitude;
+                                    neighborAlt[neighbor][i] = response.positions[i].sataltitude * 1000; //convert km to m
+                                  }
+                              }
+                          });
+                    }
                     // reset the iterations
                     iteration = 0;
                 }
-                sat1.position = new WorldWind.Position(currLat[iteration], currLong[iteration], currAlt[iteration]);
+                // set the sat position
+                sat.position = new WorldWind.Position(currLat[iteration], currLong[iteration], currAlt[iteration]);
+                // set neihbor positions
+                for (var i=0; i<neighborCount; i++) {
+                  neighborSat[i].position = new WorldWind.Position(neighborLat[i][iteration], neighborLong[i][iteration], neighborAlt[i][iteration]);
+                }
                 // if it is on third person view go to the sat location with an arbiatry scaling in altitude
                 if(!satView) {
-                  wwd.goTo(new WorldWind.Position(sat1.position.latitude, sat1.position.longitude, currAlt[iteration]*6));
+                  wwd.goTo(new WorldWind.Position(sat.position.latitude, sat.position.longitude, currAlt[iteration]*6));
                 }
                 // else go to the sattelite location with its own altitude to simulate its View
                 else if (satView) {
-                  wwd.goTo(new WorldWind.Position(sat1.position.latitude, sat1.position.longitude, currAlt[iteration]));
+                  wwd.goTo(new WorldWind.Position(sat.position.latitude, sat.position.longitude, currAlt[iteration]));
                 }
               }
               iteration++;                    //  increment the counter
@@ -245,7 +357,7 @@
           // Listen for taps on mobile devices.
           var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick);
 
-          // TO-DO
+          
           // takes to user to see from the sats location
           function changeView() {
             // if you are on third person view switch to sat view
@@ -269,3 +381,4 @@
   </body>
 
 </html>
+
