@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!-- This is a very simple example of using Web WorldWind. -->
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>WorldWind Example</title>
+    <link href="wwdPageStyle.css" rel="stylesheet">
+    <!-- Include the Web WorldWind library. -->
+    <script src="https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  </head>
+
+  <body>
+    <button id="sat-view-btn" onclick="changeView()" value="Satelite View!">Change View</button>
+    <button id="rewind" onclick="console.log('rew')">Rewind</button>
+    <div id="wwd-div">
+      <canvas id="wwd-canvas">
+          Your browser does not support HTML5 Canvas.
+      </canvas>
+    </div>
+
+    <script>
+      // Register an event listener to be called when the page is loaded.
+      window.addEventListener("load", eventWindowLoaded, false);
+
+      // The sattelite id that this page has centered
+      var currentSat;
+      // boolean to indicate wheter I'm on sat view or third person View. Default is third person
+      var satView = false;
+
+      // Create a WorldWindow for the canvas.
+      var wwd = new WorldWind.WorldWindow("wwd-canvas");
+
+      // delay config in millis
+      var DELAY = 1000;
+      var rewind = false;
+      // it counts the number of iterations performed. Since we get the future positions from the API in chunks of 300 we have to transact with the API and
+      // reset the number of iterations every time it reaches 300.
+      var iteration = 0;
+      // arrays to store future future locations of the current sat, so the user can press fast forward.
+      // also we dont have to call the API every second since we store future positions in the arrays.
+      var currLat=[];   //latitude
+      var currLong=[];   // longitude
+      var currAlt=[]     //altitude
+      var currName;      // sat name
+
+
+      function eventWindowLoaded() {
+        // decode the ID from the URL.
+        var url = document.location.href,
+            params = url.split('?')[1].split('&'),
+            data = {}, tmp;
+            for (var i = 0, l = params.length; i < l; i++) {
+               tmp = params[i].split('=');
+               data[tmp[0]] = tmp[1];
+             }
+            currentSat = data.id;
+
+        // make a request for current sat
+        var request = {
+             "async": false,
+             "crossDomain": true,
+             "url": "https://www.n2yo.com/rest/v1/satellite/positions/" + currentSat + "/37.10/22.10/0/300/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
+             "method": "GET"
+          }
+        $.ajax(request).done(function (response) {
+            console.log(response.info.satname);
+            // fill the arrrays with a chunk of 300 future positions
+            var i;
+            for (i = 0; i < 300; i++) {
+              currLat[i] = response.positions[i].satlatitude;
+              currLong[i] = response.positions[i].satlongitude;
+              currAlt[i] = response.positions[i].sataltitude * 1000; //convert km to m
+            }
+            currName = response.info.satname;
+        });
+
+          // Add some image layers to the WorldWindow's globe.
+          wwd.addLayer(new WorldWind.BMNGOneImageLayer());
+          wwd.addLayer(new WorldWind.BMNGLandsatLayer());
+          // create placemarks. currently only the first placemark corresponds to an actual sattalite with a position that is being updated in real time.
+          // The rest are just placeholders.
+          var placemarkLayer = new WorldWind.RenderableLayer("Placemarks");
+          var sat1 = new WorldWind.Placemark(new WorldWind.Position(currLat[0], currLong[0] , currAlt[0]), true);
+          var sat2 = new WorldWind.Placemark(new WorldWind.Position(20, 30, 500000), true);
+          var sat3 = new WorldWind.Placemark(new WorldWind.Position(15, 67, 500000), true);
+          var sat4 = new WorldWind.Placemark(new WorldWind.Position(32, 5, 500000), true);
+          var sat5 = new WorldWind.Placemark(new WorldWind.Position(14, 70, 500000), true);
+          var sat6 = new WorldWind.Placemark(new WorldWind.Position(89, 69, 500000), true);
+          var sat7 = new WorldWind.Placemark(new WorldWind.Position(5, 69, 500000), true);
+          var sat8 = new WorldWind.Placemark(new WorldWind.Position(10, 37, 500000), true);
+          var sat9 = new WorldWind.Placemark(new WorldWind.Position(42, 17, 500000), true);
+          var sat10 = new WorldWind.Placemark(new WorldWind.Position(17, 42, 50000), true);
+          sat1.label = currName;
+          sat2.label = "ISS2";
+          sat3.label = "name3";
+          sat4.label = "name4";
+          sat5.label = "name5";
+          sat6.label = "name6";
+          sat7.label = "name7";
+          sat8.label = "name8";
+          sat9.label = "name9";
+          sat10.label = "name10";
+
+          var attributes = sat1.attributes;
+          attributes.drawLeaderLine = true;
+          attributes.labelAttributes.color = WorldWind.Color.YELLOW;
+          attributes.imageSource = "sattelite.png";
+          attributes.labelAttributes.offset = new WorldWind.Offset(
+            WorldWind.OFFSET_FRACTION, 0.5,
+            WorldWind.OFFSET_FRACTION, -1.0);
+          attributes.imageScale = 50;
+          var font = new WorldWind.Font(50);
+          attributes.labelAttributes.font = font;
+
+          var attributes2 = sat2.attributes;
+          attributes2.drawLeaderLine = true;
+          attributes2.imageScale = 50;
+
+          var attributes3 = sat3.attributes;
+          attributes3.drawLeaderLine = true;
+          attributes3.imageScale = 50;
+
+          var attributes4 = sat4.attributes;
+          attributes4.drawLeaderLine = true;
+          attributes4.imageScale = 50;
+
+          var attributes5 = sat5.attributes;
+          attributes5.drawLeaderLine = true;
+          attributes5.imageScale = 50;
+
+          var attributes6 = sat6.attributes;
+          attributes6.drawLeaderLine = true;
+          attributes6.imageScale = 50;
+
+          var attributes7 = sat7.attributes;
+          attributes7.drawLeaderLine = true;
+          attributes7.imageScale = 50;
+
+          var attributes8 = sat8.attributes;
+          attributes8.drawLeaderLine = true;
+          attributes8.imageScale = 50;
+
+          var attributes9 = sat9.attributes;
+          attributes9.drawLeaderLine = true;
+          attributes9.imageScale = 50;
+
+          var attributes10 = sat10.attributes;
+          attributes10.drawLeaderLine = true;
+          attributes10.imageScale = 50;
+
+          placemarkLayer.addRenderable(sat1);
+          placemarkLayer.addRenderable(sat2);
+          placemarkLayer.addRenderable(sat3);
+          placemarkLayer.addRenderable(sat4);
+          placemarkLayer.addRenderable(sat5);
+          placemarkLayer.addRenderable(sat6);
+          placemarkLayer.addRenderable(sat7);
+          placemarkLayer.addRenderable(sat8);
+          placemarkLayer.addRenderable(sat9);
+          placemarkLayer.addRenderable(sat10);
+          wwd.addLayer(placemarkLayer);
+
+          // Add a compass, a coordinates display and some view controls to the WorldWindow.
+          wwd.addLayer(new WorldWind.CompassLayer());
+          wwd.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd));
+          wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
+          wwd.navigator.tilt = 60;
+        //  wwd.navigator.range = 5000000;
+          wwd.goTo(new WorldWind.Location(sat1.position.latitude, sat1.position.longitude));
+
+          // loop to update the position of the sattelites
+          function myLoop() {         //  create a loop function
+            setTimeout(function() {   //  call a setTimeout when the loop is called
+              if (rewind) {           // TO-DO :: if rewind go back. Currently this doesnt work proeprly
+                sat1.position = new WorldWind.Position(sat1.position.latitude -1.0/100, sat1.position.longitude-1.0/100, 500000);
+                wwd.goTo(new WorldWind.Position(sat1.position.latitude, sat1.position.longitude, 3000000));
+              }
+              else {                  // if not rewind move normally
+                // if it is the 300th iteration, transact again and fill the arrays with new positions.
+                if (iteration==300) {
+                  var newRequest = {
+                         "async": true,
+                         "crossDomain": true,
+                         "url": "https://www.n2yo.com/rest/v1/satellite/positions/" + currentSat + "/37.10/22.10/0/300/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
+                         "method": "GET"
+                      }
+                    $.ajax(newRequest).done(function (response) {
+                          console.log(response.info.satname);
+                          var i=0;
+                          for (i=0; i<300; i++) {
+                            currLat[i] = response.positions[i].satlatitude;
+                            currLong[i] = response.positions[i].satlongitude;
+                            currAlt[i] = response.positions[i].sataltitude * 1000;
+                          }
+                    });
+                    // reset the iterations
+                    iteration = 0;
+                }
+                sat1.position = new WorldWind.Position(currLat[iteration], currLong[iteration], currAlt[iteration]);
+                // if it is on third person view go to the sat location with an arbiatry scaling in altitude
+                if(!satView) {
+                  wwd.goTo(new WorldWind.Position(sat1.position.latitude, sat1.position.longitude, currAlt[iteration]*6));
+                }
+                // else go to the sattelite location with its own altitude to simulate its View
+                else if (satView) {
+                  wwd.goTo(new WorldWind.Position(sat1.position.latitude, sat1.position.longitude, currAlt[iteration]));
+                }
+              }
+              iteration++;                    //  increment the counter
+              if (true) {
+                myLoop();             //  ..  again which will trigger another
+              }                       //  ..  setTimeout()
+            }, DELAY)
+          }
+
+          myLoop();                   //  start the loop */
+
+        }
+
+
+      // The common gesture-handling function.
+      var handleClick = function (recognizer) {
+          // Obtain the event location.
+          var x = recognizer.clientX,
+              y = recognizer.clientY;
+
+              // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
+              // relative to the upper left corner of the canvas rather than the upper left corner of the page.
+              var pickList = wwd.pick(wwd.canvasCoordinates(x, y));
+
+              // If only one thing is picked and it is the terrain, tell the WorldWindow to go to the picked location.
+              if (pickList.objects.length === 1 && pickList.objects[0].isTerrain) {
+                  var position = pickList.objects[0].position;
+                  wwd.goTo(new WorldWind.Location(position.latitude, position.longitude));
+              }
+              else {
+                wwd.goTo(new WorldWind.Position(22, 37, 3000000));
+              }
+          };
+
+          // Listen for mouse clicks.
+          var clickRecognizer = new WorldWind.ClickRecognizer(wwd, handleClick);
+
+          // Listen for taps on mobile devices.
+          var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick);
+
+          // TO-DO
+          // takes to user to see from the sats location
+          function changeView() {
+            // if you are on third person view switch to sat view
+            if (!satView) {
+              satView = true;
+              this.value = "Third Person View";
+              // change navigator settings to make the navigator look straight down as the sattelite would, centered right below the sattelite
+              wwd.navigator.tilt = 0;   // looks straight down
+              wwd.navigator.range = currAlt[iteration];   // sets altitude to the sattelite altitude
+            }
+            // else switch back to third person
+            else {
+              satView = false;
+              this.value = "Sattelites View!";
+              // restore default navigator settings
+              wwd.navigator.tilt = 60;
+              wwd.navigator.range = currAlt[iteration]*6;
+            }
+          }
+  </script>
+  </body>
+
+</html>
