@@ -1,0 +1,40 @@
+body, html {
+  margin: 0;
+  padding:0;
+}
+#sat-view-btn {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  z-index: 2;
+}
+
+#wwd-div {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 90vh;
+  width: 100%;
+  z-index: 1;
+}
+
+#rewind {
+  position: absolute;
+  top: 0px;
+  left: 50px;
+  z-index: 2;
+}
+
+#wwd-canvas {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 10%;
+  left: 0%;
+  background-color: black;
+}
+
+
+body {
+  background-color: black;
+}
