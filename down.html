@@ -80,7 +80,7 @@
                                 obs_alt:"0",
                                 search_radius:"70",
                                 cat_id:"1"},
-                        url: 'handle_api_requests.php',
+                        url: '../handle_api_requests.php',
                         method: 'POST', // or GET
                         success: function(msg) {
                             console.log(response.info.transactionscount);
@@ -117,7 +117,7 @@
                                 obs_lng:position.longitude,
                                 obs_alt:"2",
                                 sec:"1"},
-                            url: 'handle_api_requests.php',
+                            url: '../handle_api_requests.php',
                             method: 'POST', // or GET
                             success: function(response) {
                                 ra[j] = response.positions[0].ra;
