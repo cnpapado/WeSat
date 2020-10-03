@@ -64,7 +64,7 @@
                tmp = params[i].split('=');
                data[tmp[0]] = tmp[1];
              }
-            currentSat = data.id;
+            currentSatID = data.id;
             var neighborCount = data.num;   //number of neighbors to plot
             // fill the neighborID array
             for (var i=0; i<neighborCount; i++) {
@@ -104,7 +104,9 @@
             async: false,
             success: function(msg) {
                 var response = JSON.parse(msg);
-                console.log(response.info.satname);
+	        console.log(msg);
+                console.log(response);
+	        console.log(response.info.satname);
                 // fill the arrrays with a chunk of 300 future positions
                 for (var i = 0; i < 300; i++) {
                   currLat[i] = response.positions[i].satlatitude;
@@ -146,7 +148,7 @@
                       obs_lat:"37",
                       obs_lng:"22",
                       obs_alt:"2",
-                      sec:"1"},
+                      sec:"300"},
                   url: '../handle_api_requests.php',
                   method: 'POST', // or GET
                   async: false,
@@ -258,7 +260,8 @@
                                 currLong[i] = response.positions[i].satlongitude;
                                 currAlt[i] = response.positions[i].sataltitude * 1000;
                               }
-                      });
+                          }
+	            });
 
                     // make a loop to request for coordinates for all neighbors
                     for (var neighbor=0; neighbor<neighborCount; neighbor++) {
@@ -278,6 +281,7 @@
                               neighborLong[neighbor][i] = response.positions[i].satlongitude;
                               neighborAlt[neighbor][i] = response.positions[i].sataltitude * 1000; //convert km to m
                             }
+	                   
                         });*/
                         $.ajax({
                               data: {cmd:"positions",
