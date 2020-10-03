@@ -29,12 +29,14 @@ html, body {
   top: 0%;
   left: 0%;
   background-color: black;
+  background-image: url("background.jpg");
 }
 
 #intro-msg {
   font-size: 25px;
   font-weight: 800;
-  color: red;
+  color: white;
+  font-family: "Roboto";
   z-index: 3;
   position: absolute;
   margin-left: auto;
@@ -44,6 +46,48 @@ html, body {
   text-align: center;
 }
 
+#memo {
+  position: absolute;
+  right: 3%;
+  top: 3%;
+  z-index: 0;
+  font-family: "Roboto";
+  color: white;
+  border: 1px solid white;
+  border-radius: 5%;
+  display: flex;
+  flex-flow: row wrap;
+  padding: 0.5em;
+  width: 20%
+}
+
+#red-part, #green-part{
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+}
+
+#red-part > p, #green-part > p {
+  margin: 0;
+  padding: 0.25em 0 0.25em 0.25em;
+}
+
+#red, #green {
+  min-width: 0.5em;
+  min-height: 0.5em;
+  border-radius: 50%;
+}
+
+#red {
+  background-color: tomato;
+}
+
+#green {
+  background-color: green;
+}
+
 body {
   background-color: black;
+}
+: black;
 }
