@@ -46,6 +46,11 @@ if ($_POST['cmd']=='above') {
     $url1 = build_api_url($param_url, $mykey);
     echo CallAPI("GET", $url1);
 
+} else if ($_POST['cmd']=='visual') {
+    //   /visualpasses/{id}/{observer_lat}/{observer_lng}/{observer_alt}/{days}/{min_visibility} 
+    $param_url = "visualpasses/". $_POST['id'] ."/". $_POST['obs_lat'] ."/". $_POST['obs_lng'] ."/". $_POST['obs_alt'] ."/". $_POST['days'] ."/". $_POST['min'];
+    $url1 = build_api_url($param_url, $mykey);
+    echo CallAPI("GET", $url1);
 } else {
     echo "request unknown";
 }

@@ -4,24 +4,30 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src=https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.3.0/math.min.js></script>        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <title>Locate sat</title>
     </head>
     <body>
         
 
-        
+        <h1 class="d"></h1>
         <p class="observation-info"></p>
         <pre class="orientation_sensors"></pre>
-        <h1 class="found-banner">not found</h1>
+        <h1 class="found-banner"></h1>
 
         <script src="https://rawgit.com/adtile/Full-Tilt/master/dist/fulltilt.min.js" type="text/javascript"></script>
 
         <script src="gyro.js" type="text/javascript"></script>
+        <script src="satvisibility.js" type="text/javascript"></script>
         <script>
-            if (true) {  //if sat is in a visible pass right now 
-                visiblenow(80,80); //prompt the user to locate it
+	    
+            var data = parseURL();	
+            
+            if (isVisualPass(data.id, data.lat, data.long)) {  //if sat is in a visible pass right now 
+                visiblenow(data.alt, data.az); //prompt the user to locate it
             } else {
-                         //else display next pass' info
+                var observation_info = document.querySelector('.observation-info');
+                observation_info.innerHTML = "Satellite has no visual passes soon."
             }
         </script>
         
