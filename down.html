@@ -4,7 +4,7 @@
 <head lang="en">
   <meta charset="UTF-8">
   <title>WorldWind Example</title>
-  <link href="startingPageStyle.css" rel="stylesheet">
+  <link href="downStyle.css" rel="stylesheet">
   <!-- Include the Web WorldWind library. -->
   <script src="https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min.js"></script>
   <script src="https://slowe.github.io/stuquery/js/stuquery.min.js"></script>
@@ -82,7 +82,11 @@
                                 cat_id:"1"},
                         url: '../handle_api_requests.php',
                         method: 'POST', // or GET
+                        async: false,
                         success: function(msg) {
+                            var response = JSON.parse(msg);
+		                    //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                            console.log(response);
                             console.log(response.info.transactionscount);
                             // fill the arrray with all the ID's of above sattelites
                             var i;
@@ -119,7 +123,11 @@
                                 sec:"1"},
                             url: '../handle_api_requests.php',
                             method: 'POST', // or GET
-                            success: function(response) {
+                            async: false,
+                            success: function(msg) {
+                                var response = JSON.parse(msg);              
+                                //console.log("BBBBBBBBBBBBBBB");
+                                console.log(response);
                                 ra[j] = response.positions[0].ra;
                                 dec[j] = response.positions[0].dec;
                                 name[j] = response.info.satname;
@@ -137,8 +145,8 @@
                         longitude: position.longitude,
                         clock:new Date()
                     });
-
-                    // add the sattelites to the planetarium
+                    console.log("planet_drown");
+	           // add the sattelites to the planetarium
 
                     for (var s=0; s<aboveID.length; s++) {
                         // if satellite is unlocked the url redirects to the second page
@@ -147,7 +155,7 @@
                         // insert condition isUnlocked(aboveID[s]) here
                         if (true) {
                             // Create the URL. Encode satellite ID for the next page to draw him.
-                            myURL = "wwdPage.html?id=" + encodeURIComponent(aboveID[s]);
+                            myURL = "up.html?id=" + encodeURIComponent(aboveID[s]);
                         }
                         else {
                             // pass to the gyroscope az, alt, id, and observer coordinates
