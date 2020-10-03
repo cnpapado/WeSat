@@ -3,8 +3,10 @@
 <html>
 <head lang="en">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=12.0, minimum-scale=.25, user-scalable=yes"/>
   <title>WorldWind Example</title>
   <link href="downStyle.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
   <!-- Include the Web WorldWind library. -->
   <script src="https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min.js"></script>
   <script src="https://slowe.github.io/stuquery/js/stuquery.min.js"></script>
@@ -16,6 +18,16 @@
 <body>
   <!--div for planetarium-->
   <div id="planetarium-div"></div>
+  <div id="memo">
+    <div id="red-part">
+      <div id="red"></div>
+      <p>(Locked) Click the satelite to unlock!</p>
+    </div>
+    <div id="green-part">
+      <div id="green"></div>
+      <p>(Unlocked) Click to see it from above!</p>
+    </div>
+  </div>
   <!-- div for world window-->
   <div id="wwd-div">
     <p id="intro-msg">Click on your location to see the sky!</p>
@@ -51,6 +63,7 @@
         // Navigator configurations
         wwd.navigator.tilt = 60;
         wwd.navigator.range = 5000000;
+    }
 
     // The common gesture-handling function.
     var handleClick = function (recognizer) {
@@ -68,17 +81,41 @@
                 if (locationPicked)
                   wwd.goTo(new WorldWind.Location(position.latitude, position.longitude));
                 else {   // open the planetarium at picked location
-                    locationPicked = true;
+                  locationPicked = true;
 
-                    // Array to store the id's of the above sattelites
-                    var aboveID = [];
+                  // Array to store the id's of the above sattelites
+                  var aboveID = [];
+                /*  // create the url for the request
+                  var url = "https://www.n2yo.com/rest/v1/satellite/above/" + position.latitude + "/" + position.longitude +
+                            "/0/90/1/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ";
+                   // Requeset sattelites above picked location.
+                  // ΤO-DO :: Check that this request generates correctly the sattelites
+                  var requestAbove = {
+                       "async": false,
+                       "crossDomain": true,
+                       "url": url,
+                       "method": "GET"
+                    }
+                  $.ajax(requestAbove).done(function (response) {
+                      console.log(response.info.transactionscount);
+                      // fill the arrray with all the ID's of above sattelites
+                      var i;
+                      for (i=0; i<response.above.length; i++) {
+                        aboveID[i] =  response.above[i].satid;
+                          console.log(response.above[i].satname);
+                          console.log(response.above[i].satlat);
+                          console.log(response.above[i].satlng);
+                          console.log(i);
+                          console.log("-----");
+                    }
+                  }); */
 
-                    $.ajax({
+                  $.ajax({
                         data: {cmd:"above",
                                 obs_lat:position.latitude,
                                 obs_lng:position.longitude,
                                 obs_alt:"0",
-                                search_radius:"70",
+                                search_radius:"90",
                                 cat_id:"1"},
                         url: '../handle_api_requests.php',
                         method: 'POST', // or GET
@@ -103,18 +140,36 @@
 
 
 
-                    // fill these arrays with the sattelite coordinates to place them on the planetarium
-                    var ra = [];
-                    var dec = [];
-                    var name = [];
-                    // fill these arrays to pass coordinates to the gyroscope
-                    var az = [];
-                    var alt = [];
+                  // fill these arrays with the sattelite coordinates to place them on the planetarium
+                  var ra = [];
+                  var dec = [];
+                  var name = [];
+                  // fill these arrays to pass coordinates to the gyroscope
+                  var az = [];
+                  var alt = [];
 
-                    // make a new request for every object ID you have to find its ra/dec coordinates
-                    for (var j=0; j<aboveID.length; j++) {
+                  // make a new request for every object ID you have to find its ra/dec coordinates
+                  for (var j=0; j<aboveID.length; j++) {
+                /*  // create the request url
+                    var requestUrl = "https://www.n2yo.com/rest/v1/satellite/positions/"
+                    +aboveID[j] + "/" + position.latitude + "/" + position.longitude + "/0/2/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ";
 
-                        $.ajax({
+                    var requestCoords = {
+                         "async": false,
+                         "crossDomain": true,
+                         "url": requestUrl,
+                         "method": "GET"
+                      }
+
+                      $.ajax(requestCoords).done(function (response) {
+                        ra[j] = response.positions[0].ra;
+                        dec[j] = response.positions[0].dec;
+                        name[j] = response.info.satname;
+                        az[j] = response.positions[0].azimuth;
+                        alt[j] = response.positions[0].elevation;
+                      }); */
+
+                      $.ajax({
                             data: {cmd:"positions",
                                 id:aboveID[j],
                                 obs_lat:position.latitude,
@@ -125,62 +180,82 @@
                             method: 'POST', // or GET
                             async: false,
                             success: function(msg) {
-                                var response = JSON.parse(msg);              
+                                var response = JSON.parse(msg);
                                 //console.log("BBBBBBBBBBBBBBB");
                                 console.log(response);
                                 ra[j] = response.positions[0].ra;
                                 dec[j] = response.positions[0].dec;
                                 name[j] = response.info.satname;
                                 az[j] = response.positions[0].azimuth;
-                                alt[j] = response.positions[0].elevation; 
+                                alt[j] = response.positions[0].elevation;
                             }
-                        }); 
+                        });
+
+                  }
+
+                  // draw the planetarium
+                  planetarium = S.virtualsky({
+                    id: 'planetarium-div',
+                    projection: 'stereo',
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                    clock:new Date()
+                  });
+
+                  // add the sattelites to the planetarium
+
+                  for (var s=0; s<aboveID.length; s++) {
+                    // if satellite is unlocked the url redirects to the second page
+                    var myURL;
+                    var myColor;
+                    // TO-DO ::
+                    // insert condition isUnlocked(aboveID[s]) here
+                    if (true) {
+                      myColor = 'rgb(0,250,0)';
+                      // Create the URL. Encode satellite ID for the next page to draw him. Also apend nearby sattelites that above detected.
+                      // Encoded parameter num is the number of neighboring satelites that are passed. The recepient page will use this number to store the
+                      // neighboring sattelite ID's and plot them.
+                      // Every neighboring sattelite is appended with a parameter id + <number of sattelites added so far>.
+                      // To change it back to before just replace the for loop with "id=AoveId[s]"
+                      myURL = "up.html?num=" + encodeURIComponent(aboveID.length - 1) + "&id=" + encodeURIComponent(aboveID[s]);
+                      var count=0;
+                      for (var k=0; k<aboveID.length; k++) {
+                        //append all neighboring satelites
+                        if (k!=s) {
+                          myURL += "&id" + count + "="  + encodeURIComponent(aboveID[k]);
+                          count++;
+                        }
+                      }
+                    /*  console.log("URL IS : " + myURL);
+                      console.log('-----'); */
                     }
+                    else {
+                      myColor = 'rgb(250,0,0)';
+                      // pass to the gyroscope az, alt, id, and observer coordinates
+                      // TO-DO:: The ui is overloaded by api calls. better give the gyroscope only the id to avoid using extra arrays az and alt. We'll see that.
+                      myURL ="checkVisibility.html?id=" + encodeURIComponent(aboveID[s]) + "&az=" + encodeURIComponent(az[s]) + "&alt=" + encodeURIComponent(alt[s])
+                              + "&lat=" + encodeURIComponent(position.latitude) + "&long=" + encodeURIComponent(position.longitude);
+                      console.log(encodeURIComponent(aboveID[s]) + " " + encodeURIComponent(az[s]) + " " + encodeURIComponent(alt[s]) + " " +
+                              encodeURIComponent(position.latitude) + " " + encodeURIComponent(position.longitude));
+                    }
+                    planetarium.addPointer({
+                      'ra':ra[s],
+                      'dec':dec[s],
+                      'label':name[s],
+                      'img':'https://media.wired.com/photos/5b52582f59269e342890a45a/1:1/w_1800,h_1800,c_limit/Satellite_FHM56J.jpg',
+                      'url':myURL,
+                      'credit':name[s],
+                      'colour':myColor
+                    })
+                  }
 
-                    // draw the planetarium
-                    planetarium = S.virtualsky({
-                        id: 'planetarium-div',
-                        projection: 'stereo',
-                        latitude: position.latitude,
-                        longitude: position.longitude,
-                        clock:new Date()
-                    });
-                    console.log("planet_drown");
-	           // add the sattelites to the planetarium
-
-                    for (var s=0; s<aboveID.length; s++) {
-                        // if satellite is unlocked the url redirects to the second page
-                        var myURL;
-                        // TO-DO ::
-                        // insert condition isUnlocked(aboveID[s]) here
-                        if (true) {
-                            // Create the URL. Encode satellite ID for the next page to draw him.
-                            myURL = "up.html?id=" + encodeURIComponent(aboveID[s]);
-                        }
-                        else {
-                            // pass to the gyroscope az, alt, id, and observer coordinates
-                            // TO-DO:: The ui is overloaded by api calls. better give the gyroscope only the id to avoid using extra arrays az and alt. We'll see that.
-                            myURL ="checkVisibility.html?id=" + encodeURIComponent(aboveID[s]) + "?az=" + encodeURIComponent(az[s]) + "?alt=" + encodeURIComponent(alt[s])
-                                    + "?lat=" + encodeURIComponent(position.latitude) + "?long=" + encodeURIComponent(position.longitude);
-                            console.log(encodeURIComponent(aboveID[s]) + " " + encodeURIComponent(az[s]) + " " + encodeURIComponent(alt[s]) + " " +
-                                    encodeURIComponent(position.latitude) + " " + encodeURIComponent(position.longitude));
-                        }
-                        planetarium.addPointer({
-                            'ra':ra[s],
-                            'dec':dec[s],
-                            'label':name[s],
-                            'img':'https://media.wired.com/photos/5b52582f59269e342890a45a/1:1/w_1800,h_1800,c_limit/Satellite_FHM56J.jpg',
-                            'url':myURL,
-                            'credit':name[s],
-                            'colour':'rgb(255,0,0)'
-                        })
-                    } 
-
-                    // change z-index of planetarium to make it visible
-                    var div = document.getElementById('planetarium-div');
-                    div.style["z-index"]="2";
-                    var wwddiv = document.getElementById('wwd-div');
-                    wwddiv.style["visibility"]="hidden";
+                  // change z-index of planetarium to make it visible
+                  var div = document.getElementById('planetarium-div');
+                  div.style["z-index"]="2";
+                  var wwddiv = document.getElementById('wwd-div');
+                  wwddiv.style["visibility"]="hidden";
+                  var memo = document.getElementById('memo');
+                  memo.style["z-index"]="3";
                 }
             }
         };
@@ -189,8 +264,11 @@
         var clickRecognizer = new WorldWind.ClickRecognizer(wwd, handleClick);
 
         // Listen for taps on mobile devices.
-        var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick); }
-  </script>
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick);
+</script>
 </body>
 </html>
+
+
+
 
