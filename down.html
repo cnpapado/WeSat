@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!-- This is a starting page that showcases sattelites above the picked location. -->
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>WorldWind Example</title>
+  <link href="startingPageStyle.css" rel="stylesheet">
+  <!-- Include the Web WorldWind library. -->
+  <script src="https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min.js"></script>
+  <script src="https://slowe.github.io/stuquery/js/stuquery.min.js"></script>
+  <script src="https://rawgit.com/slowe/VirtualSky/gh-pages/virtualsky.min.js" type="text/javascript"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+</head>
+
+<body>
+  <!--div for planetarium-->
+  <div id="planetarium-div"></div>
+  <!-- div for world window-->
+  <div id="wwd-div">
+    <p id="intro-msg">Click on your location to see the sky!</p>
+    <canvas id="wwd-canvas">
+        Your browser does not support HTML5 Canvas.
+    </canvas>
+  </div>
+
+  <script>
+    var planetarium;
+    var locationPicked = false;
+
+    S(document).ready(function() {
+    });
+
+    // Register an event listener to be called when the page is loaded.
+    window.addEventListener("load", eventWindowLoaded, false);
+    // Create a WorldWindow for the canvas.
+    var wwd = new WorldWind.WorldWindow("wwd-canvas");
+
+    // Define the event listener to initialize Web WorldWind.
+    function eventWindowLoaded() {
+
+        // Add some image layers to the WorldWindow's globe.
+        wwd.addLayer(new WorldWind.BMNGOneImageLayer());
+        wwd.addLayer(new WorldWind.BMNGLandsatLayer());
+
+        // Add a compass, a coordinates display and some view controls to the WorldWindow.
+        wwd.addLayer(new WorldWind.CompassLayer());
+        wwd.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd));
+        wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
+
+        // Navigator configurations
+        wwd.navigator.tilt = 60;
+        wwd.navigator.range = 5000000;
+
+        // example request for ISS
+      /*  var request1 = {
+             "async": true,
+             "crossDomain": true,
+             "url": "https://www.n2yo.com/rest/v1/satellite/positions/25544/3/-122/0/2/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
+             "method": "GET"
+          }
+        $.ajax(request1).done(function (response) {
+            console.log(response.info.satname);
+            // fill the arrrays with a chunk of 300 future positions
+            ra[0] = response.positions[0].ra;
+            dec[0] = response.positions[0].dec;
+            console.log(response.positions[0].satlongitude);
+            console.log(response.positions[0].satlatitude);
+        });
+
+        // example request for Hubble
+        var request2 = {
+             "async": true,
+             "crossDomain": true,
+             "url": "https://www.n2yo.com/rest/v1/satellite/positions/20580/3/-122/0/2/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ",
+             "method": "GET"
+          }
+        $.ajax(request2).done(function (response) {
+            console.log(response.info.satname);
+            // fill the arrrays with a chunk of 300 future positions
+            ra[1] = response.positions[1].ra;
+            dec[1] = response.positions[1].dec;
+        });*/
+    }
+
+    // The common gesture-handling function.
+    var handleClick = function (recognizer) {
+        // Obtain the event location.
+        var x = recognizer.clientX,
+            y = recognizer.clientY;
+
+            // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
+            // relative to the upper left corner of the canvas rather than the upper left corner of the page.
+            var pickList = wwd.pick(wwd.canvasCoordinates(x, y));
+
+            // If only one thing is picked and it is the terrain, tell the WorldWindow to go to the picked location.
+            if (pickList.objects.length === 1 && pickList.objects[0].isTerrain) {
+                var position = pickList.objects[0].position;
+                if (locationPicked)
+                  wwd.goTo(new WorldWind.Location(position.latitude, position.longitude));
+                else {   // open the planetarium at picked location
+                  locationPicked = true;
+
+                  // Array to store the id's of the above sattelites
+                  var aboveID = [];
+                  // create the url for the request
+                  var url = "https://www.n2yo.com/rest/v1/satellite/above/" + position.latitude + "/" + position.longitude +
+                            "/0/90/1/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ";
+                   // Requeset sattelites above picked location.
+                  // ΤO-DO :: Check that this request generates correctly the sattelites
+                  var requestAbove = {
+                       "async": false,
+                       "crossDomain": true,
+                       "url": url,
+                       "method": "GET"
+                    }
+                  $.ajax(requestAbove).done(function (response) {
+                      console.log(response.info.transactionscount);
+                      // fill the arrray with all the ID's of above sattelites
+                      var i;
+                      for (i=0; i<response.above.length; i++) {
+                        aboveID[i] =  response.above[i].satid;
+                          console.log(response.above[i].satname);
+                          console.log(response.above[i].satlat);
+                          console.log(response.above[i].satlng);
+                          console.log(i);
+                          console.log("-----");
+                    }
+                  });
+
+                  // fill these arrays with the sattelite coordinates to place them on the planetarium
+                  var ra = [];
+                  var dec = [];
+                  var name = [];
+                  // fill these arrays to pass coordinates to the gyroscope
+                  var az = [];
+                  var alt = [];
+
+                  // make a new request for every object ID you have to find its ra/dec coordinates
+                  for (var j=0; j<aboveID.length; j++) {
+                    // create the request url
+                    var requestUrl = "https://www.n2yo.com/rest/v1/satellite/positions/"
+                    +aboveID[j] + "/" + position.latitude + "/" + position.longitude + "/0/2/&apiKey=FR2XVF-WR3JRJ-Z9UGV4-4KBZ";
+
+                    var requestCoords = {
+                         "async": false,
+                         "crossDomain": true,
+                         "url": requestUrl,
+                         "method": "GET"
+                      }
+
+                      $.ajax(requestCoords).done(function (response) {
+                        ra[j] = response.positions[0].ra;
+                        dec[j] = response.positions[0].dec;
+                        name[j] = response.info.satname;
+                        az[j] = response.positions[0].azimuth;
+                        alt[j] = response.positions[0].elevation; 
+                      });
+                  }
+
+                  // draw the planetarium
+                  planetarium = S.virtualsky({
+                    id: 'planetarium-div',
+                    projection: 'stereo',
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                    clock:new Date()
+                  });
+
+                  // add the sattelites to the planetarium
+
+                  for (var s=0; s<aboveID.length; s++) {
+                    // if satellite is unlocked the url redirects to the second page
+                    var myURL;
+                    // TO-DO ::
+                    // insert condition isUnlocked(aboveID[s]) here
+                    if (true) {
+                      // Create the URL. Encode satellite ID for the next page to draw him.
+                      myURL = "wwdPage.html?id=" + encodeURIComponent(aboveID[s]);
+                    }
+                    else {
+                      // pass to the gyroscope az, alt, id, and observer coordinates
+                      // TO-DO:: The ui is overloaded by api calls. better give the gyroscope only the id to avoid using extra arrays az and alt. We'll see that.
+                      myURL ="checkVisibility.html?id=" + encodeURIComponent(aboveID[s]) + "?az=" + encodeURIComponent(az[s]) + "?alt=" + encodeURIComponent(alt[s])
+                              + "?lat=" + encodeURIComponent(position.latitude) + "?long=" + encodeURIComponent(position.longitude);
+                      console.log(encodeURIComponent(aboveID[s]) + " " + encodeURIComponent(az[s]) + " " + encodeURIComponent(alt[s]) + " " +
+                              encodeURIComponent(position.latitude) + " " + encodeURIComponent(position.longitude));
+                    }
+                    planetarium.addPointer({
+                      'ra':ra[s],
+                      'dec':dec[s],
+                      'label':name[s],
+                      'img':'https://media.wired.com/photos/5b52582f59269e342890a45a/1:1/w_1800,h_1800,c_limit/Satellite_FHM56J.jpg',
+                      'url':myURL,
+                      'credit':name[s],
+                      'colour':'rgb(255,0,0)'
+                    })
+                  }
+
+                  // change z-index of planetarium to make it visible
+                  var div = document.getElementById('planetarium-div');
+                  div.style["z-index"]="2";
+                  var wwddiv = document.getElementById('wwd-div');
+                  wwddiv.style["visibility"]="hidden";
+                }
+            }
+        };
+
+        // Listen for mouse clicks.
+        var clickRecognizer = new WorldWind.ClickRecognizer(wwd, handleClick);
+
+        // Listen for taps on mobile devices.
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick);
+</script>
+</body>
+</html>
