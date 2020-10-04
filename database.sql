@@ -106,21 +106,19 @@ INSERT INTO `has_unlocked` (`user_id`, `satellite_id`) VALUES
 (1,1), (1,9), (1,10),
 (2,1), (2,12);
 
-
-
 --
 -- AUTO_INCREMENT for table `satellites`
 --
-ALTER TABLE `satellites`
-  MODIFY `satellite_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 13;
-COMMIT;
+-- ALTER TABLE `satellites`
+--   MODIFY `satellite_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 13;
+-- COMMIT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
-ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 13;
-COMMIT;
+-- ALTER TABLE `users`
+--   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT = 13;
+-- COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

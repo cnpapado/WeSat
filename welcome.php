@@ -39,7 +39,7 @@ body {
         <h1 style="color:white;" >Hi, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Welcome to our space observation site.</h1>
     </div>
     <p>
-        <a href="down.php" class="btn btn-default">Show me map</a>
+        <a href="down.html" class="btn btn-default">Show me map</a>
     </p>
     <p>
         <a href="logout.php" class="btn btn-danger">Sign Out of Your Account</a>
