@@ -93,7 +93,8 @@ CREATE TABLE has_unlocked (
     FOREIGN KEY (`user_id`) 
         REFERENCES `users`(`user_id`),
     FOREIGN KEY (`satellite_id`) 
-        REFERENCES `satellites`(`satellite_id`)
+        REFERENCES `satellites`(`satellite_id`),
+    CONSTRAINT USER_SATELLITE PRIMARY KEY (`user_id`,`satellite_id`)
 );
 
 --
