@@ -21,13 +21,13 @@ function visiblenow(target_alt, target_az) {
             var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
             var az = 360 - currentOrientation.alpha;
             var alt = currentOrientation.beta;
-            orientation_sensors.innerHTML = "Sat is located at:\n";
-            orientation_sensors.innerHTML += "alt:" + target_alt + "\n";
-            orientation_sensors.innerHTML += "az:" + target_az + "\n";
+            orientation_sensors.innerHTML = "Sat is located at:<br>";
+            orientation_sensors.innerHTML += "alt:" + target_alt + "<br>";
+            orientation_sensors.innerHTML += "az:" + target_az + "<br>";
 
-            orientation_sensors.innerHTML += "You are now pointing at:\n";
-            orientation_sensors.innerHTML += "alt:" + math.round(alt) + "\n";
-            orientation_sensors.innerHTML += "az:" + math.round(az) + "\n";
+            orientation_sensors.innerHTML += "You are now pointing at:<br>";
+            orientation_sensors.innerHTML += "alt:" + math.round(alt) + "<br>";
+            orientation_sensors.innerHTML += "az:" + math.round(az) + "<br>";
 
             if (sat_found(alt, az, target_alt, target_az, 20)) {
                 unlock_sat(found_banner);
@@ -36,6 +36,15 @@ function visiblenow(target_alt, target_az) {
 
     }).catch(function(errorMessage) { // Device Orientation Events are not supported
         console.log(errorMessage);
-        orientation_sensors.innerHTML = "Couldn't detect orientation sensors. Please try a different browser and/or device.\n";
+        observation_info.innerHTML = "";  
+        orientation_sensors.innerHTML = "Couldn't detect orientation sensors. Please try a different browser and/or device.<br> You can scan the following QRcode and open this page on your smartphone instead.<br>";
+        var qrcode = new QRCode("qrcode");
+
+        function makeCode () {
+	    var elText = document.location.href;
+	    qrcode.makeCode(elText);
+        }
+
+        makeCode();
     });
 }
