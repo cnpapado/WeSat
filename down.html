@@ -233,7 +233,7 @@
                       myColor = 'rgb(250,0,0)';
                       // pass to the gyroscope az, alt, id, and observer coordinates
                       // TO-DO:: The ui is overloaded by api calls. better give the gyroscope only the id to avoid using extra arrays az and alt. We'll see that.
-                      myURL ="checkVisibility.html?id=" + encodeURIComponent(aboveID[s]) + "&az=" + encodeURIComponent(az[s]) + "&alt=" + encodeURIComponent(alt[s])
+                      myURL ="gyro.html?id=" + encodeURIComponent(aboveID[s]) + "&az=" + encodeURIComponent(az[s]) + "&alt=" + encodeURIComponent(alt[s])
                               + "&lat=" + encodeURIComponent(position.latitude) + "&long=" + encodeURIComponent(position.longitude);
                       console.log(encodeURIComponent(aboveID[s]) + " " + encodeURIComponent(az[s]) + " " + encodeURIComponent(alt[s]) + " " +
                               encodeURIComponent(position.latitude) + " " + encodeURIComponent(position.longitude));
