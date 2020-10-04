@@ -27,7 +27,7 @@
             var data = parseURL();	
             
             if (isVisualPass(data.id, data.lat, data.long)) {  //if sat is in a visible pass right now 
-                visiblenow(data.alt, data.az); //prompt the user to locate it
+                visiblenow(data.alt, data.az, data.id, data.sat_name); //prompt the user to locate it
             } else {
                 var observation_info = document.querySelector('.observation-info');
                 observation_info.innerHTML = "Satellite has no visual passes soon."

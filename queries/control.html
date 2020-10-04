@@ -1,0 +1,42 @@
+<html>
+<body>
+
+
+<!-- <p>Suggestions: <span id="txtHint"></span></p> -->
+
+<p><b>Satellite insert:</b></p>
+<form action="./insert_satellite.php">
+    <label for="id">Satellite Id:</label><br>
+    <input type="text" id="satellite_id" name="satellite_id"><br>
+    <label for="name">Satellite Name:</label><br>
+    <input type="text" id="name" name="name"><br>
+    <input type="submit" value="submit">
+</form>
+
+<p><b>User unlocks satellite:</b></p>
+<form action="./unlock_satellite.php">
+  <label for="name">User Id:</label><br>
+  <input type="text" id="user_id" name="user_id"><br>
+  <label for="id">Satellite Id:</label><br>
+  <input type="text" id="satellite_id" name="satellite_id"><br>
+  <input type="submit" value="submit">
+</form>
+
+<p><b>Question, is satellite unlocked??</b></p>
+<form action="./is_unlocked.php">
+  <label for="name">User Id:</label><br>
+  <input type="text" id="user_id" name="user_id"><br>
+  <label for="id">Satellite Id:</label><br>
+  <input type="text" id="satellite_id" name="satellite_id"><br>
+  <input type="submit" value="submit">
+</form>
+
+<p><b>Get, unlocked satellites</b></p>
+<form action="./get_unlocked_satellites.php">
+  <label for="name">User Id:</label><br>
+  <input type="text" id="user_id" name="user_id"><br>
+  <input type="submit" value="submit">
+</form>
+
+</body>
+</html>

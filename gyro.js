@@ -1,12 +1,50 @@
-function visiblenow(target_alt, target_az) {
+function visiblenow(target_alt, target_az, the_sat_id, the_sat_name) {
     //check??
     console.log("loaded");
     function sat_found(alt, az, t_alt, t_az, eps) {
         return (math.abs(alt-t_alt)<eps && math.abs(alt-t_alt)<eps);
     }
 
-    function unlock_sat(d) {
+    function unlock_sat(d, sat_id, sat_name) {
         d.innerHTML = "Sat found! Your satellite will now unlock.";
+        //inserts satellite
+        $.ajax({
+            data: {satellite_id: sat_id,
+                   name: sat_name},
+                        url: '../queries/insert_satellite.php',
+                        method: 'GET', // or GET
+                        async: false,
+                        success: function(msg) {
+                            //var response = JSON.parse(msg);
+                                    //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                            console.log(msg);
+                            /*if (response=="1") {
+                                return true;
+                            } else {
+                                return false;
+                            }*/
+                        }
+                    });
+
+        //updates sat-user relationship (unlocks)
+        $.ajax({
+            data: {satellite_id: sat_id,
+                   user_id: "1"},
+                        url: '../queries/unlock_satellite.php',
+                        method: 'GET', // or GET
+                        async: false,
+                        success: function(msg) {
+                            //var response = JSON.parse(msg);
+                                    //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                            console.log(msg);
+                            /*if (response=="1") {
+                                return true;
+                            } else {
+                                return false;
+                            }*/
+                        }
+                    });
+    //unlock sat end 
     }
 
     var observation_info = document.querySelector('.observation-info');
@@ -30,7 +68,7 @@ function visiblenow(target_alt, target_az) {
             orientation_sensors.innerHTML += "az:" + math.round(az) + "<br>";
 
             if (sat_found(alt, az, target_alt, target_az, 20)) {
-                unlock_sat(found_banner);
+                unlock_sat(found_banner, the_sat_id, the_sat_name);
             }
         });
 

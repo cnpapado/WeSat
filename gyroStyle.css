@@ -10,7 +10,7 @@ html {
 body {
   width: 100%;
   height: 100%;
-  background-image: url("background.jpg");
+  background-image: url("static/background.jpg");
 }
 
 #content-div {
@@ -56,6 +56,8 @@ body {
 	min-height: 200px;
 	display: block;
 	margin: 0 auto;
+        background-color: grey;
+        padding: 2em;
 }
 
 

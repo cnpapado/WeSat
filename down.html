@@ -13,15 +13,29 @@
   <script src="https://rawgit.com/slowe/VirtualSky/gh-pages/virtualsky.min.js" type="text/javascript"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="misc/popup.js"></script>
 </head>
 
 <body>
+
+  <!-- The Modal -->
+  <div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p id="modal-text">Some text in the Modal..</p>
+    </div>
+
+  </div>
+
+
   <!--div for planetarium-->
   <div id="planetarium-div"></div>
   <div id="memo">
     <div id="red-part">
       <div id="red"></div>
-      <p>(Locked) Click the satelite to unlock!</p>
+      <p>(Locked) Click the satellite to unlock!</p>
     </div>
     <div id="green-part">
       <div id="green"></div>
@@ -30,7 +44,7 @@
   </div>
   <!-- div for world window-->
   <div id="wwd-div">
-    <p id="intro-msg">Click on your location to see the sky!</p>
+    <p id="intro-msg">First click on your location to see the sky and available satellites!</p>
     <canvas id="wwd-canvas">
         Your browser does not support HTML5 Canvas.
     </canvas>
@@ -40,8 +54,33 @@
     var planetarium;
     var locationPicked = false;
 
-    S(document).ready(function() {
+    S(document).ready(function(){
+        setTimeout(function(){
+        openPopup("<h1>Welcome to WeSat!</h1><h3>With WeSat you have the ability to see all the artificial satellites hovering above in real time. Get outside, observe them in the night sky and unlock the amazing privillege to view the earth through their \"eyes\".</h3><p>Unlock as many as you can and expand your collection!</p>");
+        },1000); // 1 sec
     });
+    
+    function satisUnlocked(sat, id) {
+        result=false;
+        $.ajax({
+                        data: {satellite_id: sat,
+                                user_id: id},
+                        url: '../queries/is_unlocked.php',
+                        method: 'GET', // or GET
+                        async: false,
+                        success: function(msg) {
+                            //var response = JSON.parse(msg);
+                                    //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                            console.log(msg);
+			    if (msg=="1") {
+			        result= true;
+			    }
+                                
+			    
+                        }
+                    });
+        return result; 
+    }
 
     // Register an event listener to be called when the page is loaded.
     window.addEventListener("load", eventWindowLoaded, false);
@@ -210,7 +249,7 @@
                     var myColor;
                     // TO-DO ::
                     // insert condition isUnlocked(aboveID[s]) here
-                    if (false) {
+                    if (satisUnlocked(aboveID[s], 1)) {     // Math.random()>0.5) 
                       myColor = 'rgb(0,250,0)';
                       // Create the URL. Encode satellite ID for the next page to draw him. Also apend nearby sattelites that above detected.
                       // Encoded parameter num is the number of neighboring satelites that are passed. The recepient page will use this number to store the
@@ -233,7 +272,7 @@
                       myColor = 'rgb(250,0,0)';
                       // pass to the gyroscope az, alt, id, and observer coordinates
                       // TO-DO:: The ui is overloaded by api calls. better give the gyroscope only the id to avoid using extra arrays az and alt. We'll see that.
-                      myURL ="gyro.html?id=" + encodeURIComponent(aboveID[s]) + "&az=" + encodeURIComponent(az[s]) + "&alt=" + encodeURIComponent(alt[s])
+                      myURL ="gyro.html?id=" + encodeURIComponent(aboveID[s]) +"&sat_name="+ encodeURIComponent((name[s]).replace(/\s/g, '')) + "&az=" + encodeURIComponent(az[s]) + "&alt=" + encodeURIComponent(alt[s])
                               + "&lat=" + encodeURIComponent(position.latitude) + "&long=" + encodeURIComponent(position.longitude);
                       console.log(encodeURIComponent(aboveID[s]) + " " + encodeURIComponent(az[s]) + " " + encodeURIComponent(alt[s]) + " " +
                               encodeURIComponent(position.latitude) + " " + encodeURIComponent(position.longitude));

@@ -191,19 +191,20 @@
           var attributes = sat.attributes;
           attributes.drawLeaderLine = true;
           attributes.labelAttributes.color = WorldWind.Color.YELLOW;
-          attributes.imageSource = "https://user-images.githubusercontent.com/71587056/94994337-a28caf80-059f-11eb-8f37-9e9b40854758.png";
+          attributes.imageSource = "static/satellite.png";
           attributes.labelAttributes.offset = new WorldWind.Offset(
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, -1.0);
-          attributes.imageScale = 50;
+          attributes.imageScale = 3;
           attributes.labelAttributes.font = new WorldWind.Font(50);
           placemarkLayer.addRenderable(sat);
 
           // set attributes for neighborSat
           for (var i=0; i<neighborCount; i++) {
             var attributes = neighborSat[i].attributes;
-            attributes.drawLeaderLine = true;
-            attributes.imageScale = 50;
+            attributes.imageSource = "static/satellite.png";
+	    attributes.drawLeaderLine = true;
+            attributes.imageScale = 3;
             placemarkLayer.addRenderable(neighborSat[i]);
           }
 
