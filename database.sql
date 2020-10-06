@@ -24,14 +24,12 @@ DROP DATABASE NASA;
 CREATE DATABASE IF NOT EXISTS NASA DEFAULT CHARACTER SET utf8;
 USE NASA;
 
--- --------------------------------------------------------
-
 --
 -- Table structure for table `satellites`
 --
 
-CREATE TABLE `satellites` (
-  `satellite_id` int(11) NOT NULL,
+CREATE TABLE satellites (
+  `satellite_id` int(11) NOT NULL UNIQUE,
   `name` varchar(50) NOT NULL UNIQUE,
   PRIMARY KEY (`satellite_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -40,7 +38,7 @@ CREATE TABLE `satellites` (
 -- Dumping data for table `satellites`
 --
 
-INSERT INTO `satellites` (`satellite_id`, `name`) VALUES
+INSERT INTO satellites (`satellite_id`, `name`) VALUES
 (1, 'cosmos_42'),
 (2, 'kati_93'),
 (3, 'blahblah_31'),
@@ -50,17 +48,16 @@ INSERT INTO `satellites` (`satellite_id`, `name`) VALUES
 (7, 'Vale'),
 (8, 'valeVale'),
 (9, 'neo1'),
-(10, ''),
+(10, 'cosmos33'),
 (11, 'neo2'),
 (12, 'neo3');
-
 
 --
 -- Table structure for table `users`
 --
 
-CREATE TABLE `users` (
-    `user_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE users (
+    `user_id` INT NOT NULL AUTO_INCREMENT UNIQUE,
     `username` VARCHAR(50) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
     PRIMARY KEY (`user_id`)
@@ -70,41 +67,49 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `username`, `password`) VALUES
-(1, 'mimi', '12345678'),
-(2, 'tete', '12345678'),
-(3, 'wewe', '12345678'),
-(4, 'lagd', '12345678'),
-(5, 'dodo', '12345678'),
-(6, 'gigi', '12345678'),
-(7, 'veve', '12345678'),
-(8, 'vava', '12345678'),
-(9, 'vovo', '12345678'),
-(10, 'vuvu', '12345678'),
-(11, 'huhu', '12345678'),
-(12, 'rere', '12345678');
+INSERT INTO users (`user_id`, `username`, `password`) VALUES
+(1, 'enrique', '$2y$10$2Fbb96UvfqUfPsc/YEaviuKOVsNpyc1vYA/FFZrY.jVHgbWfPiN86'),
+(2, 'carlos', '$2y$10$3arr106hquDKJ.di5J.V8OlVi7rQjyQH4bHHX3vC9NECLnNyie29i'),
+(3, 'emiliano', '$2y$10$ac04BwDjuhnIA7yESmZSLOXUw3V5LJNyujz1gUUgDyBZH3rlMEaXC')
+;
+-- (1, 'mimi', 'sgadsgsdgsda'),
+-- (2, 'tete', 'gdsagdsghadsghdas'),
+-- (3, 'wewe', 'dsgdsgdsgdsagsadg'),
+-- (4, 'lagd', 'greagqwaetdgsa'),
+-- (5, 'dodo', 'tewqtsghdfhadfs'),
+-- (6, 'gigi', 'fdsgdsagewqt'),
+-- (7, 'veve', 'vcxzbadfgewqrtsf'),
+-- (8, 'vava', 'beqrgfdxgbcbavdf'),
+-- (9, 'vovo', 'fsdafqewtredfxgdas'),
+-- (10, 'vuvu', 'fdsagewtre'),
+-- (11, 'huhu', 'erhytrhfghgvbns'),
+-- (12, 'rere', 'fgdwhrtfudfgvhsrdyhstfgj');
 
-----------------------------------------------------------
 
 --
 -- Table structure for table `has_unlocked`
 --
 
-CREATE TABLE `has_unlocked` (
-    `user_id` INT NOT NULL UNIQUE,
-    `satellite_id` INT  NOT NULL UNIQUE,
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`users_id`) ON UPDATE CASCADE,
-    FOREIGN KEY (`satellite_id`) REFERENCES `satellites`(`satellite_id`) ON UPDATE CASCADE,
-
+CREATE TABLE has_unlocked (
+    `user_id` INT NOT NULL,
+    `satellite_id` INT NOT NULL,
+    FOREIGN KEY (`user_id`)
+        REFERENCES `users`(`user_id`),
+    FOREIGN KEY (`satellite_id`)
+        REFERENCES `satellites`(`satellite_id`),
+    CONSTRAINT USER_SATELLITE PRIMARY KEY (`user_id`,`satellite_id`)
 );
 
 --
 -- Dumping data for table `has_unlocked`
 --
 
-INSERT INTO `has_unlocked` (`user_id`, `satellite_id`) VALUES
-(1,1), (1,9), (1,10),
-(2,1), (2,12);
+INSERT INTO has_unlocked (`user_id`, `satellite_id`) VALUES
+(1,1),
+(1,2),
+(1,3),
+(2,3),
+(2,4);
 
 --
 -- AUTO_INCREMENT for table `satellites`
@@ -123,3 +128,12 @@ INSERT INTO `has_unlocked` (`user_id`, `satellite_id`) VALUES
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- NOTE NOTE
+-- https://stackoverflow.com/questions/22009582/error-1064-42000-you-have-an-error-in-your-sql-syntax-check-the-manual-that
+-- There are two different types of quotation marks in MySQL.
+-- You need to use ` for column names and ' for strings.
+-- Since you have used ' for the filename column the query parser got confused.
+-- Either remove the quotation marks around all column names,
+-- or change 'filename' to `filename`. Then it should work.
